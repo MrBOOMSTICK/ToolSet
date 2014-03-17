@@ -1,7 +1,7 @@
-DPToolSet
+ToolSet
 =========
 
-A set of tools for use by DigiPen students.
+A set of helpful tools, particularly for DigiPen students.
 
 I hope these are useful to ya'll!
 
