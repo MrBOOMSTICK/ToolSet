@@ -1,0 +1,11 @@
+  configurations { "Debug", "Release" }
+
+  configuration { "Debug" }
+    targetdir "bin/debug"
+
+  configuration { "Release" }
+    targetdir "bin/release"
+
+  if _ACTION == "clean" then
+    os.rmdir("bin/debug", "bin/release")
+  end

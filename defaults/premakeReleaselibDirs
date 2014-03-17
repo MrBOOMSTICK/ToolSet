@@ -1,0 +1,5 @@
+      "$(CODEUTILS)/lib/$(Configuration)" }
+      
+    configuration { "Release*" }
+      defines { "NDEBUG" }
+      libdirs { "lib/release", 

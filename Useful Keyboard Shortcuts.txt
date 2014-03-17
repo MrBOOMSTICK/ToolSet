@@ -1,0 +1,51 @@
+ =========    Notepad ++    =========
+
+       Ctrl + NumPad 1-9 : Open specific tab
+              Ctrl + Tab : Cycle through open tabs
+                Ctrl + W : Close Current tab
+        Ctrl + Arrow Key : Scroll
+  Ctrl + Shift + Up/Down : Move current line up/down
+ Alt + Shift + Arrow Key : Rectangle select
+   Alt + Hold Left Click : Rectangle select
+         Alt + Shift + S : Trim trailing spaces and save
+                Alt + F2 : Google search selected
+
+ =========  Command Prompt  ========= 
+
+             Enter : Copy 
+       Alt + Space : Open title bar menu
+ Alt + Space, E, M : Mark
+ Alt + Space, E, P : Paste
+ Alt + Space, E, S : Select All
+ Alt + Space,    C : Close Window
+                
+ ========= Windows Specific =========
+
+          Alt + D : Highlight path in Address Bar
+                  -> type "cmd" in address bar to open command prompt in current path
+ Ctrl + Shift + N : Create New Folder
+      Alt + Enter : Show the properties of a file/folder
+         Alt + Up : Go up a folder level
+          Alt + P : Toggle preview pane
+          Win + R : Starts the Run dialog
+ Ctrl + Shift + E : Expands folders in left pane to show current location
+
+          Win + D : Display the Desktop
+      Win + Space : Preview the Desktop
+          Win + M : Minimize all windows
+  Win + Shift : M : Maximize all windows
+       Win + Home : Minimize all but active window
+          Win + E : Opens Computer
+          Win + L : Locks the PC
+  Win + Arrow Key : Snaps windows
+
+        Win + 1-9 : Start/open the application on the taskbar in that position
+Shift + Win + 1-9 : Starts new instance of the application in taskbar position
+Ctrl  + Win + 1-9 : Cycles through open windows for the application in taskbar position
+Alt   + Win + 1-9 : Opens the Jump List for the aplication in taskbar position
+
+       Middle Click a taskbar item : Starts new instance of the application
+ Shift + Left Click a taskbar item : Starts new instance of the application
+ Ctrl  + Left Click a taskbar item : Cycles through open instances of the application
+Shift + Right Click a taskbar item : Opens the context menu
+           Right Click the taskbar : cascade or open task manager

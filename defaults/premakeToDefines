@@ -1,0 +1,8 @@
+    }
+    
+    libdirs { "lib/" }
+    if(os.get() == "windows") then
+      debugenvs "PATH=%PATH%;$(ProjectDir)"
+    end
+
+    defines{
