@@ -7,7 +7,7 @@ I hope these are useful to ya'll!
 
 ##Before using scripts
 Requirements
-* [premake4](http://industriousone.com/premake/download)
+* [premake4](http://industriousone.com/premake/download) Wherever this exe is must be in your path.
 * If you're on windows, [cygwin](http://cygwin.com/install.html)
 
 Set environment variable CODEUTILS to this folder without the final slash
