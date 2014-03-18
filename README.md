@@ -5,10 +5,18 @@ A set of helpful tools, particularly for DigiPen students.
 
 I hope these are useful to ya'll!
 
+##Included Library Versions (All 32-bit)
+* Premake5
+* FMOD Ex 4.06.03
+* GLFW 3.0.4
+* Lua 5.2
+
 ##Requirements
 1) Make sure you have [cygwin](http://cygwin.com/install.html) installed and cygwin/bin is in your path
 
-2) Run SetWindowsEnv.bat to set up your environment variables correctly, this should only be done once.
+2) If you would like to use the Gmock option when creating projects, please download and build (instructions at bottom of this readme) it and enter its location into the environment variable EXTERNALSROOT (this will also help you with CS365 if you have not taken it at DigiPen yet).
+
+3) Run SetWindowsEnv.bat to set up your environment variables correctly, this should only be done once.
 
 
 Alternatively you can do this manually by creating environment variable CODEUTILS set to your installed folder without the final slash and putting the same value in your PATH variable
@@ -33,7 +41,7 @@ Note: These scripts assume windows with Visual Studio 2012 at the moment, I'm wo
 | newProj.sh | Creates a new project folder and writes a default main/premake file for you with specifications |
 | ------------- | ----------- |
 | Usage | newProj [folder/exe name] |
-| | optional: libraries to link [gmock, fmod, net, lua, opengl, glfw, dx11] |
+| | optional: libraries to link [gmock, fmod, net, lua, opengl, dx11] |
 | | optional: [winmain] |
 | | optional: Libraries part of this project |
 | EX: | bash newProj.sh myNewProject myLibrary gmock fmod opengl |
@@ -52,3 +60,6 @@ Note: These scripts assume windows with Visual Studio 2012 at the moment, I'm wo
 * Linux Compatability
 * Include file system library
 * Include thread library
+
+###GMOCK HELP GUIDE
+Download [Gmock](https://code.google.com/p/googlemock/downloads/list). The newProj script expects version 1.7.0 so if your version is newer you may easily change this at the top of that script. To build gmock make sure to set C/C++ > Code Generation > Runtime Library to MT and MTd. For VS2012 set the Preprocessor define _VARIADIC_MAX=10. This should make everything build correctly. After it is built, set the environment variable EXTERNALSROOT to the base install folder without the trailing slash so that %EXTERNALSROOT%/gmock-1.7.0/ expands correctly

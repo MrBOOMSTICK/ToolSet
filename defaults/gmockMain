@@ -1,0 +1,6 @@
+  /* Gmock main function */
+  testing::InitGoogleMock(&argc, argv);
+  TODO("Write some tests!");
+  ret = RUN_ALL_TESTS();
+  system("pause");
+

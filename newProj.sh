@@ -5,6 +5,8 @@ directory=
 userLibraries=
 NumUserLibraries=0
 
+GMOCK_VERSION=1.7.0
+
 ##options
 winmain=false
 
@@ -19,7 +21,6 @@ lua=false
 
 #--GRAPHICS
 opengl=false
-GLFW=false
 dx11=false
 
 ####### FUNCTIONS ########
@@ -60,7 +61,7 @@ function WriteIncludeParam
 }
 
 #passed the filename
-function WriteInclude
+function WritePrecompiled
 {
   echo -e "#pragma once\n\n//Common Include and Macros\n#include \"SuperCommon.h\"\n" > $1
 
@@ -73,33 +74,54 @@ function WriteInclude
   fi
 
   WriteIncludeParam $gmock $1 "GMock Includes" "gtest/gtest.h" "gmock/gmock.h"
-  WriteIncludeParam $fmod $1 "Fmod Includes" "fmod.hpp" "fmod_errors.h" "fmod_codec.h" "fmod_dsp.h" "fmod_output.h"
+  WriteIncludeParam $fmod $1 "Fmod Includes" "FMOD/fmod.hpp" "FMOD/fmod_errors.h" "FMOD/fmod_codec.h" "FMOD/fmod_dsp.h" "FMOD/fmod_output.h"
 
-  WriteIncludeParam $opengl $1 "OpenGl Includes" "glew.h" 
-  WriteIncludeParam $GLFW $1 "GLFW Includes" "glfw.h"
+  #WriteIncludeParam $opengl $1 "OpenGl Includes" "GL/glew.h" 
+  WriteIncludeParam $opengl $1 "OpenGL Includes" "GL/glfw3.h"
   WriteIncludeParam $dx11 $1 "Direct3D 11 Includes" "dxgi.h" "d3dcommon.h" "d3d11.h" "d3dx11tex.h" "d3dx11async.h" "d3dx10math.h"
 
-  WriteIncludeParam $lua $1 "Lua Includes" "lua.hpp"
+  WriteIncludeParam $lua $1 "Lua Includes" "Lua/lua.hpp"
 }
 
 #passed the filename
 function WriteMain
 {
   cd src
-  echo -e "#include \"CommonPrecompiled.h\"" > $1
-  echo -e "\n" >> $1
+  echo -e "/*\n * HEADER\n */\n#include \"CommonPrecompiled.h\"" > $1
+
+  includeCounter=0
+  while [[ $includeCounter -lt $NumUserLibraries ]]; do
+    echo -e "#include \"${userLibraries[$includeCounter]}.h\"" >> $1
+    let includeCounter=includeCounter+1
+  done
+
   ### TYPE OF MAIN
   if [[ "$winmain" == "true" ]]; then
-    echo -e "int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)\n{" >> $1
+    echo -e "\n\nint CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)\n{" >> $1
   else
-    echo -e "int main(int argc, char** argv)\n{" >> $1
+    echo -e "\n\nint main(int argc, char** argv)\n{\n  s32 ret = 0;" >> $1
   fi
 
   ##### WRITE MAIN BODY
+  echo -e "  TODO(\"Write a program!\");\n" >> $1
+  if [[ "$opengl" == "true" ]]; then
+    cat "$(cygpath "$CODEUTILS")/defaults/glMain" >> $1
+  fi
+
+  if [[ "$lua" == "true" ]]; then
+    cat "$(cygpath "$CODEUTILS")/defaults/luaMain" >> $1
+  fi
+
   if [[ "$gmock" == "true" ]]; then
-    echo -e "  testing::InitGoogleMock(&argc, argv);\n  int ret = RUN_ALL_TESTS();\n  system(\"pause\");\n  return ret;" >> $1
-  else
-    echo -e "  TODO(\"Write a program!\");\n  return 0;" >> $1
+    cat "$(cygpath "$CODEUTILS")/defaults/gmockMain" >> $1
+  fi
+
+  if [[ "$dx11" == "true" ]]; then
+    echo -e "  TODO(\"I have no help for you to start with dx11, good luck\");" >> $1
+  fi
+
+  if [[ "$fmod" == "true" ]]; then
+    echo -e "  TODO(\"FMOD Quick Start: http://www.gamedev.net/page/resources/_/technical/game-programming/a-quick-guide-to-fmod-r2098\");" >> $1
   fi
 
   ##### END OF MAIN
@@ -120,8 +142,8 @@ function WritePremakeBase
   ## INCLUDE DIRS
   cat "$(cygpath "$CODEUTILS")/defaults/premakeIncludeDirs" >> premake4.lua
   if [[ "$gmock" == true ]]; then
-    echo -e "    \"\$(EXTERNALSROOT)/gmock-1.7.0/include\",
-    \"\$(EXTERNALSROOT)/gmock-1.7.0/gtest/include\"," >> premake4.lua
+    echo -e "    \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/include\",
+    \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/gtest/include\"," >> premake4.lua
   fi
   if [[ "$dx11" == true ]]; then
     echo -e "    \"\$(IncludePath)\"," >> premake4.lua
@@ -132,14 +154,14 @@ function WritePremakeBase
   #debug
   cat "$(cygpath "$CODEUTILS")/defaults/premakeDBGLibDirs" >> premake4.lua  
   if [[ $gmock == true ]]; then
-    echo -e "      \"\$(EXTERNALSROOT)/gmock-1.7.0/msvc/2012/\$(Configuration)\"," >> premake4.lua
+    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> premake4.lua
   fi
   #release
   cat "$(cygpath "$CODEUTILS")/defaults/premakeReleaseLibDirs" >> premake4.lua  
   if [[ "$gmock" == true ]]; then
-    echo -e "      \"\$(EXTERNALSROOT)/gmock-1.7.0/msvc/2012/\$(Configuration)\"," >> premake4.lua
+    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> premake4.lua
   fi
-  
+
   echo -e "      \"\$(CODEUTILS)/lib/\$(Configuration)\" }" >> premake4.lua
 }
 
@@ -185,18 +207,18 @@ function WritePremakeProjectEXEHeader
 
   #WINDOWS ONLY LIBRARIES
   echo -e "    }
-    
-    libdirs { \"lib/\" }
+
+    libdirs { \"lib/\", \"\$(CODEUTILS)/lib/\" }
     if(os.get() == \"windows\") then
       debugenvs \"PATH=%PATH%;\$(ProjectDir)\"
       links { " >> premake4.lua
 
   WriteLib $net "wsock32"
   
-  WriteLib $opengl "glew32"
+  #WriteLib $opengl "glew32"
   WriteLib $opengl "opengl32"
-  WriteLib $opengl "glu32"
-  WriteLib $GLFW "GLFW"
+  #WriteLib $opengl "glu32"
+  WriteLib $opengl "glfw3"
 
   WriteLib $dx11 "dxgi"
   WriteLib $dx11 "d3d11"
@@ -214,7 +236,7 @@ function WritePremakeProjectEXEHeader
 
   WriteLib $opengl "GL"
   WriteLib $opengl "GLU"
-  WriteLib $GLFW "GLFW"
+  WriteLib $opengl "glfw3"
 
   ## DEFINES
   echo "      }
@@ -242,7 +264,7 @@ function WritePremake
 if [[ -z $1 ]]; then
   echo "newProj -- Creates a new project folder with default values"
   echo "Usage: newProj <folder/exe name> "
-  echo "       [optional: libraries to link[gmock, fmod, net, lua, opengl, glfw, dx11]]"
+  echo "       [optional: libraries to link[gmock, fmod, net, lua, opengl, dx11]]"
   echo "       [optional: winmain]"
   echo "       [optional: Libraries to be written as part of this project]"
   echo "  Note: the 'net' library will ifdef winsock and unix includes"
@@ -281,10 +303,6 @@ for arg in $*; do
     opengl=true
     temp=true
   fi
-  if [[ "$arg" == "glfw" ]]; then
-    GLFW=true
-    temp=true
-  fi
   if [[ "$arg" == "dx11" ]]; then
     dx11=true
     temp=true
@@ -318,12 +336,11 @@ cd $directory
 echo premake.lua
 WritePremake $directory $userLibraries
 
-echo SuperCommon.h
 cp "$(cygpath "$CODEUTILS")/include/SuperCommon.h" include
 
 echo CommonPrecompiled.h
 cd include
-WriteInclude "CommonPrecompiled.h"
+WritePrecompiled "CommonPrecompiled.h"
 cd ..
 
 echo CommonPrecompiled.cpp
@@ -336,10 +353,20 @@ WriteMain "Main.cpp"
 
 counter=0
 while [[ $counter -lt $NumUserLibraries ]]; do
+  echo ${userLibraries[$counter]}.h
+  echo -e "#pragma once\nTODO(\"Write the ${userLibraries[$counter]} header.\");" >> include/${userLibraries[$counter]}/${userLibraries[$counter]}.h
   echo ${userLibraries[$counter]}.cpp
-  echo -e "#include \"CommonPrecompiled.h\"\nTODO(\"Write The ${userLibraries[$counter]} Library!\");" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
+  echo -e "#include \"CommonPrecompiled.h\"\n#include \"${userLibraries[$counter]}.h\"\n\nTODO(\"Write The ${userLibraries[$counter]} Library!\");" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
   let counter=counter+1
 done
+
+if [[ "$lua" == true ]]; then
+  cp "$(cygpath "$CODEUTILS")/lib/lua52.dll" .
+fi
+
+if [[ "$fmod" == true ]]; then
+  cp "$(cygpath "$CODEUTILS")/lib/fmodex.dll" .
+fi
 echo -------Done!
 
 echo === Running Premake

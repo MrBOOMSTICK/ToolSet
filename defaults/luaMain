@@ -1,0 +1,7 @@
+  /* Starting with Lua */
+  lua_State* luaState = luaL_newstate();
+  const lua_Number* luaVersion = lua_version(luaState);
+  std::cout << "Lua Version: " << *luaVersion << std::endl;
+  TODO("Lua Things");
+  lua_close(luaState);
+
