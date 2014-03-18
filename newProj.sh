@@ -1,11 +1,15 @@
 #!/bin/bash
 
+####### SETTINGS
+GMOCK_VERSION=1.7.0
+PREMAKE_FILE=premake5.lua
+OS=windows #linux NOT FULLY SUPPORTED YET
+DEVENV=vs2012 #vs2013 codeblocks?
+
 ####### PARAMS
 directory=
 userLibraries=
 NumUserLibraries=0
-
-GMOCK_VERSION=1.7.0
 
 ##options
 winmain=false
@@ -20,7 +24,7 @@ net=false
 lua=false
 
 #--GRAPHICS
-opengl=false
+gl=false
 dx11=false
 
 ####### FUNCTIONS ########
@@ -42,7 +46,7 @@ function MakeDir
 function WriteLib
 {
   if [[ "$1" == true ]]; then
-    echo -e "      \"$2\", " >> premake4.lua
+    echo -e "      \"$2\", " >> $PREMAKE_FILE
   fi
 }
 
@@ -76,8 +80,7 @@ function WritePrecompiled
   WriteIncludeParam $gmock $1 "GMock Includes" "gtest/gtest.h" "gmock/gmock.h"
   WriteIncludeParam $fmod $1 "Fmod Includes" "FMOD/fmod.hpp" "FMOD/fmod_errors.h" "FMOD/fmod_codec.h" "FMOD/fmod_dsp.h" "FMOD/fmod_output.h"
 
-  #WriteIncludeParam $opengl $1 "OpenGl Includes" "GL/glew.h" 
-  WriteIncludeParam $opengl $1 "OpenGL Includes" "GL/glfw3.h"
+  WriteIncludeParam $gl $1 "OpenGL Includes" "GL/glfw3.h"
   WriteIncludeParam $dx11 $1 "Direct3D 11 Includes" "dxgi.h" "d3dcommon.h" "d3d11.h" "d3dx11tex.h" "d3dx11async.h" "d3dx10math.h"
 
   WriteIncludeParam $lua $1 "Lua Includes" "Lua/lua.hpp"
@@ -104,7 +107,7 @@ function WriteMain
 
   ##### WRITE MAIN BODY
   echo -e "  TODO(\"Write a program!\");\n" >> $1
-  if [[ "$opengl" == "true" ]]; then
+  if [[ "$gl" == "true" ]]; then
     cat "$(cygpath "$CODEUTILS")/defaults/glMain" >> $1
   fi
 
@@ -133,36 +136,36 @@ function WritePremakeBase
 {
   echo "
 
-    defines{" >> premake4.lua
+    defines{" >> $PREMAKE_FILE
 
   if [[ "$gmock" == true ]]; then
-    echo -e "    \"_VARIADIC_MAX=10\"," >> premake4.lua 
+    echo -e "    \"_VARIADIC_MAX=10\"," >> $PREMAKE_FILE 
   fi
   
   ## INCLUDE DIRS
-  cat "$(cygpath "$CODEUTILS")/defaults/premakeIncludeDirs" >> premake4.lua
+  cat "$(cygpath "$CODEUTILS")/defaults/premakeIncludeDirs" >> $PREMAKE_FILE
   if [[ "$gmock" == true ]]; then
     echo -e "    \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/include\",
-    \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/gtest/include\"," >> premake4.lua
+    \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/gtest/include\"," >> $PREMAKE_FILE
   fi
   if [[ "$dx11" == true ]]; then
-    echo -e "    \"\$(IncludePath)\"," >> premake4.lua
-    echo -e "    \"\$(DXSDK_DIR)Include\"," >> premake4.lua
+    echo -e "    \"\$(IncludePath)\"," >> $PREMAKE_FILE
+    echo -e "    \"\$(DXSDK_DIR)Include\"," >> $PREMAKE_FILE
   fi
   
   ## LIB DIRS
   #debug
-  cat "$(cygpath "$CODEUTILS")/defaults/premakeDBGLibDirs" >> premake4.lua  
+  cat "$(cygpath "$CODEUTILS")/defaults/premakeDBGLibDirs" >> $PREMAKE_FILE  
   if [[ $gmock == true ]]; then
-    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> premake4.lua
+    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> $PREMAKE_FILE
   fi
   #release
-  cat "$(cygpath "$CODEUTILS")/defaults/premakeReleaseLibDirs" >> premake4.lua  
+  cat "$(cygpath "$CODEUTILS")/defaults/premakeReleaseLibDirs" >> $PREMAKE_FILE  
   if [[ "$gmock" == true ]]; then
-    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> premake4.lua
+    echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> $PREMAKE_FILE
   fi
 
-  echo -e "      \"\$(CODEUTILS)/lib/\$(Configuration)\" }" >> premake4.lua
+  echo -e "      \"\$(CODEUTILS)/lib/\$(Configuration)\" }" >> $PREMAKE_FILE
 }
 
 function WritePremakeProjectLIBHeader
@@ -176,8 +179,8 @@ function WritePremakeProjectLIBHeader
     language \"C++\"
     kind     \"StaticLib\"
 
-    files  {\"src/CommonPrecompiled.cpp\", \"src/$1/**.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> premake4.lua
-  
+    files  {\"src/CommonPrecompiled.cpp\", \"src/$1/**.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> $PREMAKE_FILE
+
   WritePremakeBase $1
 }
 
@@ -191,17 +194,17 @@ function WritePremakeProjectEXEHeader
     language \"C++\"
     kind     \"ConsoleApp\"
 
-    files  {\"src/*.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> premake4.lua
+    files  {\"src/*.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> $PREMAKE_FILE
 
     ## LIBRARIES TO LINK
-  echo "    links  { " >> premake4.lua
+  echo "    links  { " >> $PREMAKE_FILE
   WriteLib $gmock "gmock"
   WriteLib $lua "liblua52"
   WriteLib $fmod "fmodex_vc"
 
   counter=0
   while [[ $counter -lt $NumUserLibraries ]]; do
-    echo -e "      \"${userLibraries[$counter]}\", " >> premake4.lua
+    echo -e "      \"${userLibraries[$counter]}\", " >> $PREMAKE_FILE
     let counter=counter+1
   done
 
@@ -211,14 +214,12 @@ function WritePremakeProjectEXEHeader
     libdirs { \"lib/\", \"\$(CODEUTILS)/lib/\" }
     if(os.get() == \"windows\") then
       debugenvs \"PATH=%PATH%;\$(ProjectDir)\"
-      links { " >> premake4.lua
+      links { " >> $PREMAKE_FILE
 
   WriteLib $net "wsock32"
   
-  #WriteLib $opengl "glew32"
-  WriteLib $opengl "opengl32"
-  #WriteLib $opengl "glu32"
-  WriteLib $opengl "glfw3"
+  WriteLib $gl "opengl32"
+  WriteLib $gl "glfw3"
 
   WriteLib $dx11 "dxgi"
   WriteLib $dx11 "d3d11"
@@ -226,30 +227,30 @@ function WritePremakeProjectEXEHeader
   WriteLib $dx11 "d3dx10"
 
   if [[ "$dx11" == true ]]; then
-    echo -e "    }\n      libdirs { \"\$(DXSDK_DIR)Lib/x86\" " >> premake4.lua
+    echo -e "    }\n      libdirs { \"\$(DXSDK_DIR)Lib/x86\" " >> $PREMAKE_FILE
   fi
 
   #LINUX ONLY LIBRARIES
   echo -e "      }
     elseif(os.get() == \"linux\") then
-      links { " >> premake4.lua
+      links { " >> $PREMAKE_FILE
 
-  WriteLib $opengl "GL"
-  WriteLib $opengl "GLU"
-  WriteLib $opengl "glfw3"
+  WriteLib $gl "GL"
+  WriteLib $gl "GLU"
+  WriteLib $gl "glfw3"
 
   ## DEFINES
   echo "      }
-    end" >> premake4.lua
+    end" >> $PREMAKE_FILE
 
     WritePremakeBase $1
 }
 
 function WritePremake
 {
-  echo -e "solution \"$1\"" > premake4.lua
-  cat "$(cygpath "$CODEUTILS")/defaults/premakeConfigDef" >> premake4.lua
-  echo "  startproject = $1;" >> premake4.lua
+  echo -e "solution \"$1\"" > $PREMAKE_FILE
+  echo "  startproject \"$1\"" >> $PREMAKE_FILE
+  cat "$(cygpath "$CODEUTILS")/defaults/premakeConfigDef" >> $PREMAKE_FILE
 
   WritePremakeProjectEXEHeader $1
 
@@ -264,7 +265,7 @@ function WritePremake
 if [[ -z $1 ]]; then
   echo "newProj -- Creates a new project folder with default values"
   echo "Usage: newProj <folder/exe name> "
-  echo "       [optional: libraries to link[gmock, fmod, net, lua, opengl, dx11]]"
+  echo "       [optional: libraries to link[gmock, fmod, net, lua, gl, dx11]]"
   echo "       [optional: winmain]"
   echo "       [optional: Libraries to be written as part of this project]"
   echo "  Note: the 'net' library will ifdef winsock and unix includes"
@@ -299,8 +300,8 @@ for arg in $*; do
     temp=true
   fi
 
-  if [[ "$arg" == "opengl" ]]; then
-    opengl=true
+  if [[ "$arg" == "gl" ]]; then
+    gl=true
     temp=true
   fi
   if [[ "$arg" == "dx11" ]]; then
@@ -360,15 +361,20 @@ while [[ $counter -lt $NumUserLibraries ]]; do
   let counter=counter+1
 done
 
-if [[ "$lua" == true ]]; then
-  cp "$(cygpath "$CODEUTILS")/lib/lua52.dll" .
-fi
+if [[ "$OS" == windows ]]; then
+  cp "$(cygpath "$CODEUTILS")/clean.bat" .
+  cp "$(cygpath "$CODEUTILS")/prem.bat" .
 
-if [[ "$fmod" == true ]]; then
-  cp "$(cygpath "$CODEUTILS")/lib/fmodex.dll" .
+  if [[ "$lua" == true ]]; then
+    cp "$(cygpath "$CODEUTILS")/lib/lua52.dll" .
+  fi
+
+  if [[ "$fmod" == true ]]; then
+    cp "$(cygpath "$CODEUTILS")/lib/fmodex.dll" .
+  fi
 fi
 echo -------Done!
 
 echo === Running Premake
-premake vs2012
+premake $DEVENV
 echo -------Done!
