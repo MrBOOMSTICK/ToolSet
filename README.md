@@ -14,7 +14,7 @@ I hope these are useful to ya'll!
 ##Requirements
 1) Make sure you have [cygwin](http://cygwin.com/install.html) installed and cygwin/bin is in your path
 
-2) If you would like to use the Gmock option when creating projects, please download and build (instructions at bottom of this readme) it and enter its location into the environment variable EXTERNALSROOT (this will also help you with CS365 if you have not taken it at DigiPen yet).
+2) If you would like to use the Gmock option when creating projects, please download and build it (instructions at bottom of this readme) and enter its location into the environment variable EXTERNALSROOT (this will also help you with CS365 if you have not taken it at DigiPen yet).
 
 3) Run SetWindowsEnv.bat to set up your environment variables correctly, this should only be done once.
 
@@ -42,7 +42,7 @@ Note: These scripts assume windows with Visual Studio 2012 at the moment, I'm wo
 | ------------- | ----------- |
 | Usage | newProj [folder/exe name] |
 | | optional: libraries to link [gmock, fmod, net, lua, opengl, dx11] |
-| | optional: [winmain] |
+| | optional: [winmain, precompiled] |
 | | optional: Libraries part of this project |
 | EX: | bash newProj.sh myNewProject myLibrary gmock fmod opengl |
 | EX: | bash newProj.sh myWindowsProject winmain myLibrary dx11 |
@@ -55,6 +55,9 @@ Note: These scripts assume windows with Visual Studio 2012 at the moment, I'm wo
 | prem.bat | Runs the command 'premake vs2012' |
 | ------------- | ----------- |
 | Usage | prem |
+
+###GMOCK NOTE
+When using Gmock the project is automatically set to be static-linking. This causes Visual Leak Detector (vld) to find leaks that are not in your code. I am looking into this but if you find a solution please let me know!
 
 ###MY TODO LIST
 * Linux Compatability

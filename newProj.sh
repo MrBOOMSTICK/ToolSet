@@ -13,6 +13,7 @@ NumUserLibraries=0
 
 ##options
 winmain=false
+precompiled=false
 
 ####LIBRARIES
 #--OTHER
@@ -90,7 +91,13 @@ function WritePrecompiled
 function WriteMain
 {
   cd src
-  echo -e "/*\n * HEADER\n */\n#include \"CommonPrecompiled.h\"" > $1
+  echo -e "/*\n * HEADER\n */" > $1
+
+  if [[ "$precompiled" == true ]]; then
+    echo -e "#include \"CommonPrecompiled.h\"" >> $1
+  else
+    echo -e "#include \"CommonIncludes.h\"" >> $1
+  fi
 
   includeCounter=0
   while [[ $includeCounter -lt $NumUserLibraries ]]; do
@@ -128,7 +135,7 @@ function WriteMain
   fi
 
   ##### END OF MAIN
-  echo -e "}\n" >> $1
+  echo -e "  return ret;\n}\n" >> $1
   cd ..
 }
 
@@ -155,8 +162,30 @@ function WritePremakeBase
   
   ## LIB DIRS
   #debug
-  cat "$(cygpath "$CODEUTILS")/defaults/premakeDBGLibDirs" >> $PREMAKE_FILE  
-  if [[ $gmock == true ]]; then
+  echo -e "    \"\$(CODEUTILS)/include\"\n    }\n" >> $PREMAKE_FILE
+  if [[ "$precompiled" == true ]]; then
+    echo -e "    if(_ACTION == \"gmake\") then
+      buildoptions {\"-std=c++0x\"}
+      pchheader ( \"include/CommonPrecompiled.h\" )
+    else
+      pchheader ( \"CommonPrecompiled.h\" )
+    end
+    pchsource ( \"src/CommonPrecompiled.cpp\" )" >> $PREMAKE_FILE
+  fi
+
+  ## FLAGS
+  echo -e    "flags { " >> $PREMAKE_FILE
+  if [[ "$gmock" == true ]]; then
+    echo -e "\"NoIncrementalLink\", \"StaticRuntime\", " >> $PREMAKE_FILE
+  fi
+
+  echo -e "\"Unicode\"}
+    configuration { \"Debug*\" }
+      defines { \"_DEBUG\", \"DEBUG\" }
+      flags   { \"Symbols\" }
+      libdirs { \"lib/debug\", " >> $PREMAKE_FILE
+
+  if [[ "$gmock" == true ]]; then
     echo -e "      \"\$(EXTERNALSROOT)/gmock-$GMOCK_VERSION/msvc/2012/\$(Configuration)\"," >> $PREMAKE_FILE
   fi
   #release
@@ -179,7 +208,13 @@ function WritePremakeProjectLIBHeader
     language \"C++\"
     kind     \"StaticLib\"
 
-    files  {\"src/CommonPrecompiled.cpp\", \"src/$1/**.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> $PREMAKE_FILE
+    files  { " >> $PREMAKE_FILE
+
+  if [[ "$precompiled" == true ]]; then
+    echo -e "\"src/CommonPrecompiled.cpp\"," >> $PREMAKE_FILE
+  fi
+
+  echo -e " \"src/$1/**.cpp\", \"include/**.h\", \"include/**.hpp\" }" >> $PREMAKE_FILE
 
   WritePremakeBase $1
 }
@@ -266,7 +301,7 @@ if [[ -z $1 ]]; then
   echo "newProj -- Creates a new project folder with default values"
   echo "Usage: newProj <folder/exe name> "
   echo "       [optional: libraries to link[gmock, fmod, net, lua, gl, dx11]]"
-  echo "       [optional: winmain]"
+  echo "       [optional: winmain, precompiled]"
   echo "       [optional: Libraries to be written as part of this project]"
   echo "  Note: the 'net' library will ifdef winsock and unix includes"
   exit 1
@@ -279,6 +314,11 @@ for arg in $*; do
   temp=false
   if [[ "$arg" == "winmain" ]]; then
     winmain=true
+    temp=true
+  fi
+
+  if [[ "$arg" == "precompiled" ]]; then
+    precompiled=true
     temp=true
   fi
 
@@ -339,14 +379,18 @@ WritePremake $directory $userLibraries
 
 cp "$(cygpath "$CODEUTILS")/include/SuperCommon.h" include
 
-echo CommonPrecompiled.h
 cd include
-WritePrecompiled "CommonPrecompiled.h"
-cd ..
-
-echo CommonPrecompiled.cpp
-cd src
-echo -e "#include \"CommonPrecompiled.h\"" > CommonPrecompiled.cpp
+if [[ "$precompiled" == true ]]; then
+  echo CommonPrecompiled.h
+  WritePrecompiled "CommonPrecompiled.h"
+  cd ..
+  echo CommonPrecompiled.cpp
+  cd src
+  echo -e "#include \"CommonPrecompiled.h\"" > CommonPrecompiled.cpp
+else
+  echo CommonIncludes.h
+  WritePrecompiled "CommonIncludes.h"
+fi
 cd ..
 
 echo Main.cpp
@@ -357,7 +401,12 @@ while [[ $counter -lt $NumUserLibraries ]]; do
   echo ${userLibraries[$counter]}.h
   echo -e "#pragma once\nTODO(\"Write the ${userLibraries[$counter]} header.\");" >> include/${userLibraries[$counter]}/${userLibraries[$counter]}.h
   echo ${userLibraries[$counter]}.cpp
-  echo -e "#include \"CommonPrecompiled.h\"\n#include \"${userLibraries[$counter]}.h\"\n\nTODO(\"Write The ${userLibraries[$counter]} Library!\");" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
+  if [[ "$precompiled" == true ]]; then
+    echo -e "#include \"CommonPrecompiled.h\"" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
+  else
+    echo -e "#include \"CommonIncludes.h\"" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
+  fi
+  echo -e "#include \"${userLibraries[$counter]}.h\"\n\nTODO(\"Write The ${userLibraries[$counter]} Library!\");" >> src/${userLibraries[$counter]}/${userLibraries[$counter]}.cpp
   let counter=counter+1
 done
 
