@@ -33,7 +33,7 @@ Note: These scripts assume windows with Visual Studio 2012 at the moment, I'm wo
 | Usage | zipAssign [name of outputfile] |
 | EX: | bash zipAssign.sh CS120_student.name_2.zip |
 
-| testAssign.sh | unzips a zipped file to temp dir, builds and runs it, deletes temp dir after prompt |
+| testAssign.sh | builds a zipped assign in temp dir testing to make sure it bulids without CODEUTILS set, deletes temp dir on completion |
 | ------------- | ----------- |
 | Usage | testAssign [ziped filename] |
 | EX: | bash testAssign.sh CS120_sutdent.name_2.zip |

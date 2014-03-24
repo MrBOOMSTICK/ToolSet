@@ -11,7 +11,7 @@ if [[ -f $1 ]]; then
 fi
 
 rm -r ipch obj bin
-rm *.user *.sdf
+rm *.user *.sdf *.suo
 
 if [[ -d settings ]]; then
   cd settings
@@ -19,6 +19,4 @@ if [[ -d settings ]]; then
   rm -r obj
 fi
 
-cp "$(cygpath "$CODEUTILS")/include/SuperCommon.h" include
 zip -x premake4.lua *.zip *.sh -r $1."zip" *
-rm include/SuperCommon.h
